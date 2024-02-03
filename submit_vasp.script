@@ -1,0 +1,26 @@
+#!/bin/bash -l
+#SBATCH -J scan
+#SBATCH -p alpha-3 --mem=120000 
+#SBATCH -t 05-24:00:00
+##SBATCH -x alpha[20,21,22,23,24]
+#SBATCH -N 1 -n 48
+#SBATCH -d afterany:1
+
+hostname
+
+np=$((SLURM_JOB_CPUS_PER_NODE))
+
+source /opt/intel/bin/compilervars.sh inte
+module load compilers/intel.2017
+origdir=$PWD
+scrdir=/scratch/${USER}/${USER}.$SLURM_JOB_ID
+mkdir -p $scrdir
+
+/bin/cp -rfp $PWD/* $scrdir/
+cd $scrdir
+
+ulimit -s unlimited
+mpirun -np 48 /home2/abbas/softwares/vasp6.3.2/bin/vasp_std >&log.out
+/bin/cp -rfp * $origdir &&
+cd $origdir &&
+rm -rf $scrdir
